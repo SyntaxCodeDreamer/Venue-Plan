@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenueFlow — Fan Assistant</title>
+  <link rel="stylesheet" href="fan.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="fan-app">
+    <!-- Fan Login Overlay -->
+    <div id="fan-lock-screen" style="position: fixed; inset: 0; background: #050508; z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s;">
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; border-radius: 20px; width: 90%; max-width: 400px; text-align: center;">
+        <h2 style="color: white; margin-bottom: 2rem;">Fan Access Portal</h2>
+        <form id="fan-login-form">
+          <input type="text" id="ticket-id" placeholder="Ticket ID (e.g., TKT-123)" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; margin-bottom: 1rem; text-align: center;">
+          <input type="password" id="fan-name" placeholder="Full Name" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; margin-bottom: 1rem; text-align: center;">
+          <select id="fan-venue" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; margin-bottom: 1.5rem; text-align: center;">
+            <option value="" disabled selected>Loading Venues...</option>
+          </select>
+          <button type="submit" style="width: 100%; padding: 1rem; background: #10b981; color: white; border: none; border-radius: 12px; font-weight: 700;">Validate Ticket</button>
+        </form>
+      </div>
+    </div>
+
+    <header class="fan-header">
+      <div class="logo">V</div>
+      <div class="title">
+        <h1>VenueFlow</h1>
+        <p>Live Fan Experience</p>
+      </div>
+    </header>
+
+    <main class="fan-main">
+      <!-- Section: MAP -->
+      <div class="fan-section active" id="view-map" style="display: block;">
+      <!-- Status Card -->
+      <section class="status-card">
+        <div class="status-header">
+          <span class="pulse-dot"></span>
+          <h2 id="venue-title">Stadium Overview</h2>
+        </div>
+        <p class="status-text">Matches are currently in progress. Crowd flow is <span class="flow-state">Steady</span>.</p>
+      </section>
+
+      <!-- Heatmap Insight -->
+      <section class="insight-section">
+        <h3>Live Crowd Map</h3>
+        <div class="map-container">
+            <canvas id="fan-heatmap"></canvas>
+            <div class="map-overlay">
+                <div class="zone-label north">NORTH TIER</div>
+                <div class="zone-label south">SOUTH TIER</div>
+            </div>
+        </div>
+        </div>
+      </section>
+      </div> <!-- End Map Section -->
+
+      <!-- Section: FACILITIES -->
+      <div class="fan-section" id="view-facilities" style="display: none;">
+      <section class="facilities-grid" id="facilities-list">
+        <!-- Dynamic Facility Cards -->
+      </section>
+      <!-- Wayfinding -->
+      <section class="insight-section">
+        <h3>Travel & Wayfinding</h3>
+        <div class="facility-card">
+          <span class="f-icon">🚆</span>
+          <div class="f-info">
+            <span class="f-name">Central Station Transit</span>
+            <span class="f-wait low">Clear Flow</span>
+          </div>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-soft); margin-top: 0.5rem; line-height: 1.4;">
+            Trains are departing every 4 minutes. Post-match surge is expected in <strong>45 minutes</strong>.
+        </p>
+      </section>
+      </div> <!-- End Facilities Section -->
+
+      <!-- Section: TICKETS -->
+      <div class="fan-section" id="view-tickets" style="display: none;">
+          <section class="insight-section">
+            <h3 style="margin-bottom: 1rem; color: white;">Digital Ticket</h3>
+            <div style="background: white; border-radius: 12px; padding: 2rem; text-align: center; color: black;">
+                <h2 style="margin-bottom: 0.5rem;" id="ticket-display-name">Fan Pass</h2>
+                <div style="width: 100%; height: 80px; background: repeating-linear-gradient(90deg, #000, #000 3px, transparent 3px, transparent 6px); margin: 1.5rem 0;"></div>
+                <p style="font-family: monospace; font-size: 1.2rem; margin-top: 0.5rem;" id="ticket-display-id">TKT-XXXX</p>
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem; text-align: left;">
+                    <div>
+                        <div style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Section</div>
+                        <div style="font-weight: 700;">114</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Row</div>
+                        <div style="font-weight: 700;">G</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Seat</div>
+                        <div style="font-weight: 700;">22</div>
+                    </div>
+                </div>
+            </div>
+          </section>
+      </div> <!-- End Tickets Section -->
+
+    </main>
+
+    <footer class="fan-nav">
+        <div class="nav-item active" data-target="view-map">Map</div>
+        <div class="nav-item" data-target="view-facilities">Facilities</div>
+        <div class="nav-item" data-target="view-tickets">Tickets</div>
+    </footer>
+  </div>
+
+  <script src="fan.js"></script>
+</body>
+</html>
