@@ -12,21 +12,37 @@ export default function DispatchModal() {
   const close         = useAppStore(s => s.closeDispatch);
   const staff         = useAppStore(s => s.staff);
   const updateUnit    = useAppStore(s => s.updateStaffUnit);
+  const addStaffUnit  = useAppStore(s => s.addStaffUnit);
   const addAlert      = useAppStore(s => s.addAlert);
 
-  const [selUnit,   setSelUnit]   = useState('');
-  const [selSector, setSelSector] = useState(SECTORS[0]);
+  const [unitName,   setUnitName]   = useState('');
+  const [unitRole,   setUnitRole]   = useState('Security');
+  const [selSector,  setSelSector]  = useState(SECTORS[0]);
+
+  // Sync unitName with selection if they pick from dropdown
+  const handleSelectExisting = (name) => {
+    setUnitName(name);
+    const existing = staff.find(u => u.name === name);
+    if (existing) setUnitRole(existing.role);
+  };
 
   const handleConfirm = async () => {
-    const unitName = selUnit || staff[0]?.name;
-    const unit = staff.find(u => u.name === unitName);
-    if (!unit) { close(); return; }
+    if (!unitName.trim()) return;
+
+    let unit = staff.find(u => u.name === unitName);
+    const isNew = !unit;
+
+    if (isNew) {
+      unit = { name: unitName, role: unitRole, status: 'Standby', zone: 'Unassigned' };
+      addStaffUnit(unit);
+      await VenueDB.updateStaffUnit(unit); // Using update (put) for new ones too
+    }
 
     const updated = { ...unit, status:'En-route', zone: selSector.split(' ')[0] };
     updateUnit(updated);
     await VenueDB.updateStaffUnit(updated);
 
-    const alert = { type:'success', msg:`DISPATCH: ${unit.name} rerouted to ${selSector}.`, time: fmtTime(new Date()) };
+    const alert = { type:'success', msg:`DISPATCH: ${unit.name} (${unit.role}) rerouted to ${selSector}.`, time: fmtTime(new Date()) };
     addAlert(alert);
     await VenueDB.addAlert(alert);
 
@@ -37,24 +53,52 @@ export default function DispatchModal() {
       await VenueDB.updateStaffUnit(arrived);
     }, 5000);
 
+    setUnitName('');
     close();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} title="📡 Unit Dispatch" subtitle="Re-assign tactical units to specific sectors." maxWidth="440px">
-      <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+    <Modal isOpen={isOpen} onClose={close} title="📡 Unit Dispatch" subtitle="Deploy or re-assign tactical units." maxWidth="440px">
+      <div style={{ display:'flex', flexDirection:'column', gap:'1.2rem' }}>
+        
         <div>
-          <label style={{ display:'block', fontSize:'0.7rem', color:'var(--text-muted)', marginBottom:'4px' }}>Select Unit</label>
-          <select
-            value={selUnit}
-            onChange={e => setSelUnit(e.target.value)}
-            style={{ width:'100%', padding:'0.8rem', background:'var(--bg-primary)', border:'1px solid var(--border-light)', borderRadius:'8px', color:'white' }}
-          >
-            {staff.map(u => (
-              <option key={u.name} value={u.name}>{u.name} ({u.role})</option>
-            ))}
-          </select>
+          <label style={{ display:'block', fontSize:'0.7rem', color:'var(--text-muted)', marginBottom:'4px' }}>Unit Name</label>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <input
+              type="text"
+              placeholder="Enter name (e.g. Unit Delta)"
+              value={unitName}
+              onChange={e => setUnitName(e.target.value)}
+              style={{ flex:1, padding:'0.8rem', background:'var(--bg-primary)', border:'1px solid var(--border-light)', borderRadius:'8px', color:'white' }}
+            />
+            {staff.length > 0 && (
+              <select
+                value={unitName}
+                onChange={e => handleSelectExisting(e.target.value)}
+                style={{ width:'40px', background:'var(--bg-tertiary)', border:'1px solid var(--border-light)', borderRadius:'8px', color:'white', textAlign:'center' }}
+              >
+                <option value="" disabled>▼</option>
+                {staff.map(u => (
+                  <option key={u.name} value={u.name}>{u.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
+
+        {!staff.find(u => u.name === unitName) && (
+          <div style={{ animation: 'fadeIn 0.3s' }}>
+            <label style={{ display:'block', fontSize:'0.7rem', color:'var(--text-muted)', marginBottom:'4px' }}>Assign Role (New Unit)</label>
+            <input
+              type="text"
+              placeholder="Unit Role (e.g. Tactical Response)"
+              value={unitRole}
+              onChange={e => setUnitRole(e.target.value)}
+              style={{ width:'100%', padding:'0.8rem', background:'var(--bg-primary)', border:'1px solid var(--border-light)', borderRadius:'8px', color:'white' }}
+            />
+          </div>
+        )}
+
         <div>
           <label style={{ display:'block', fontSize:'0.7rem', color:'var(--text-muted)', marginBottom:'4px' }}>Target Sector</label>
           <select
@@ -71,7 +115,11 @@ export default function DispatchModal() {
         <button onClick={close} style={{ padding:'0.6rem 1.5rem', color:'var(--text-secondary)', background:'var(--bg-tertiary)', border:'1px solid var(--border-light)', borderRadius:'8px', cursor:'pointer' }}>
           Cancel
         </button>
-        <button onClick={handleConfirm} style={{ padding:'0.6rem 2rem', background:'var(--accent-indigo)', color:'white', borderRadius:'8px', fontWeight:700, border:'none', cursor:'pointer' }}>
+        <button 
+          onClick={handleConfirm} 
+          disabled={!unitName.trim()}
+          style={{ padding:'0.6rem 2rem', background:'var(--accent-indigo)', opacity: unitName.trim() ? 1 : 0.5, color:'white', borderRadius:'8px', fontWeight:700, border:'none', cursor:'pointer' }}
+        >
           Confirm Dispatch
         </button>
       </div>

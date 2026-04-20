@@ -1,10 +1,6 @@
 import { useRef, useEffect } from 'react';
 
-const DRIFT_DATA = [
-  { label: 'Sec N:', value: '+2.1%', color: 'var(--accent-green)' },
-  { label: 'Sec S:', value: '+12.4%', color: 'var(--accent-red)' },
-  { label: 'Sec E:', value: '-1.2%', color: 'var(--accent-yellow)' },
-];
+
 
 function FlowCanvas() {
   const canvasRef = useRef(null);
@@ -90,13 +86,29 @@ export default function CrowdFlowView() {
         <div className="card-header">
           <span className="card-title">Active Sector Drift</span>
         </div>
-        <div style={{ fontFamily:'var(--mono)', fontSize:'0.8rem' }}>
-          {DRIFT_DATA.map(d => (
-            <div key={d.label} style={{ display:'flex', justifyContent:'space-between', padding:'4px 0' }}>
-              <span>{d.label}</span>
-              <span style={{ color: d.color }}>{d.value}</span>
-            </div>
-          ))}
+        <div style={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          textAlign: 'center',
+          color: 'rgba(255,255,255,0.4)',
+          fontSize: '0.85rem',
+          padding: '2rem 1rem'
+        }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            borderRadius: '50%', 
+            border: '2px dashed rgba(255,255,255,0.1)', 
+            marginBottom: '1rem',
+            animation: 'pulse 2s infinite'
+          }} />
+          <p style={{ margin: 0, fontWeight: 500 }}>Awaiting Live Sensor Data</p>
+          <p style={{ margin: '4px 0 0', fontSize: '0.7rem', opacity: 0.6 }}>
+            Connect fan portals to begin tracking flow.
+          </p>
         </div>
       </div>
     </div>

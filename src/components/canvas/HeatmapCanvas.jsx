@@ -54,13 +54,50 @@ function drawVenueLayout(ctx, w, h, format, customZones) {
 
 export default function HeatmapCanvas({ className = '', style = {} }) {
   const canvasRef = useRef(null);
-  // mutable zone data (density lerps each frame, target synced from store)
+  const venueFormat = useAppStore(s => s.venueFormat);
+  const customZones = useAppStore(s => s.customZones);
+  const storeZones = useAppStore(s => s.zones);
+
+  // mutable zone data (density lerps each frame)
   const zonesRef = useRef({
     north: { density: 0.72, target: 0.75 },
     south: { density: 0.88, target: 0.90 },
     east:  { density: 0.45, target: 0.40 },
     west:  { density: 0.32, target: 0.35 }
   });
+
+  // Keep internal ref in sync with current store zones to prevent "ghost" dots
+  useEffect(() => {
+    const nextZones = {};
+    const currentKeys = Object.keys(storeZones);
+    
+    // IF STORE ZONES ARE EMPTY, WE MUST RESET ENTIRELY
+    if (currentKeys.length === 0) {
+      zonesRef.current = {
+        north: { density: 0.1, target: 0.1 },
+        south: { density: 0.1, target: 0.1 },
+        east:  { density: 0.1, target: 0.1 },
+        west:  { density: 0.1, target: 0.1 }
+      };
+      return;
+    }
+
+    currentKeys.forEach(k => {
+      nextZones[k] = zonesRef.current[k] || { 
+        density: 0.1, 
+        target: storeZones[k]?.target || 0.1 
+      };
+    });
+    
+    // If we have default zones for stadium/arena, keep them
+    if (venueFormat !== 'custom') {
+      ['north','south','east','west'].forEach(k => {
+        if (!nextZones[k]) nextZones[k] = zonesRef.current[k] || { density:0.1, target:0.1 };
+      });
+    }
+
+    zonesRef.current = nextZones;
+  }, [storeZones, venueFormat]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -81,9 +118,9 @@ export default function HeatmapCanvas({ className = '', style = {} }) {
       if (w <= 0 || h <= 0) { rafId = requestAnimationFrame(draw); return; }
 
       // Sync zone targets from store
-      const { zones: storeZones, venueFormat, customZones } = useAppStore.getState();
-      Object.keys(storeZones).forEach(k => {
-        if (zonesRef.current[k]) zonesRef.current[k].target = storeZones[k].target;
+      const currentStoreZones = useAppStore.getState().zones;
+      Object.keys(currentStoreZones).forEach(k => {
+        if (zonesRef.current[k]) zonesRef.current[k].target = currentStoreZones[k].target;
       });
 
       ctx.clearRect(0,0,w,h);
@@ -115,7 +152,7 @@ export default function HeatmapCanvas({ className = '', style = {} }) {
     rafId = requestAnimationFrame(draw);
 
     return () => { cancelAnimationFrame(rafId); ro.disconnect(); };
-  }, []);
+  }, [venueFormat, customZones]); // Re-draw when format changes
 
   return (
     <canvas

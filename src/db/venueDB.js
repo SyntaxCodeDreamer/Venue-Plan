@@ -18,7 +18,10 @@ const SEED_USERS = [
 ];
 const SEED_ALERTS = [];
 
-const SEED_STAFF = [];
+const SEED_STAFF = [
+  { name: 'Unit Alpha',   role: 'Security', status: 'Standby', zone: 'Unassigned' },
+  { name: 'Unit Bravo',   role: 'Medical',  status: 'Standby', zone: 'Unassigned' },
+];
 
 
 function openDB() {
@@ -73,7 +76,12 @@ async function _seedIfEmpty() {
   }
 
   if (uc === 0) { const us = store(S.USERS, 'readwrite');  SEED_USERS.forEach(u  => us.put(u)); }
-  // Simulated alerts and staff seeding removed
+  
+  const sc = await p(store(S.STAFF).count());
+  if (sc === 0) {
+    const ss = store(S.STAFF, 'readwrite');
+    SEED_STAFF.forEach(s => ss.put(s));
+  }
 }
 
 
@@ -119,5 +127,6 @@ export const VenueDB = {
 
   // STAFF
   getStaff()              { return p(store(S.STAFF).getAll()); },
-  updateStaffUnit(member) { return p(store(S.STAFF, 'readwrite').put(member)); }
+  updateStaffUnit(member) { return p(store(S.STAFF, 'readwrite').put(member)); },
+  addStaffUnit(member)    { return p(store(S.STAFF, 'readwrite').add(member)); }
 };

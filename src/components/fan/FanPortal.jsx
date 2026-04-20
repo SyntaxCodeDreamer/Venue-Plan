@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../../styles/fan.css';
 import FanHeader           from './FanHeader';
 import FanNav              from './FanNav';
